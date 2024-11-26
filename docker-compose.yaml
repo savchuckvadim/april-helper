@@ -1,0 +1,15 @@
+version: "3.3"  # Убедитесь, что версия поддерживается вашей версией Docker Compose
+
+services:
+
+  helper:
+      container_name: "helper"
+      image: helper
+      build:
+        context: .
+        dockerfile: Dockerfile
+      volumes:
+      - .:/var/www/html  
+      ports:
+        - "8090:8000"
+      restart: unless-stopped
