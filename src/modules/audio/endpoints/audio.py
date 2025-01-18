@@ -1,66 +1,23 @@
-from fastapi import APIRouter, Request
+# routers
+from fastapi import APIRouter, Query
+from src.modules.audio.usecases.audio_from_beeline_to_bx_case import FromBeeToBx
 from fastapi.responses import JSONResponse
-from src.modules.audio.entities.audio_from_beeline_to_bx_dto import AudioFromBeelineToBxDTO
-from src.modules.audio.usecases.audio_from_beeline_to_bx_case import AudioFromBeelineToBxCase
+
+# uvicorn app.main:app --host 0.0.0.0 --port 8000
+router = APIRouter()
 
 
+@router.post("/process-data/")
+async def process_data(
+    date_from: str = Query(..., alias="date_from"),
+    date_to: str = Query(..., alias="date_to"),
+    userId: int = Query(...),
+    phone_client: str = Query(..., alias="phone_client"),
+    duration_call_minut: int = Query(..., alias="duration_call_minut"),
+    companyId: int = Query(..., alias="companyId")
+):
+    domain = "april-garant.bitrix24.ru"
+    case = FromBeeToBx()
+    result = case.prepare_response(domain, date_from, date_to, userId, phone_client, duration_call_minut, companyId)
+    return JSONResponse(result)
 
-router = APIRouter(prefix="/audio", tags=['Получить аудио-файл из билайн в битрикс веб-хук'])
-
-# class Payload(BaseModel):
-    # date_from: str  # Формат даты: 'YYYY-MM-DD'
-    # date_to: str
-    # userId: int
-    # phone_client: str
-    # duration_call_minut: int
-
-@router.post("/audio/")
-async def audio(
-    request: Request,
-    date_from: str,  # Формат даты: 'YYYY-MM-DD'
-    date_to: str,
-    userId: int,
-    phone_client: str,
-    duration_call_minut: int 
-    ):
-    print(request.query_params)
-
-    return JSONResponse({"result": request}, status_code=200)
-
-
-
-@router.post("/test/")
-async def test(  
-    request: Request,
-    # domain: str, 
-    # companyId: int, 
-    # date_from: str,
-    # date_to: str,
-    # userId: int,
-    # phone_client: str,
-    # duration_call_minute: int 
-    ):
-    
-    domain='april-garant.bitrix24.ru'
-    companyId=36582
-    date_from='01.11.2024'
-    date_to='22.11.2024'
-    userId=705
-    phone_client='+796200299999'
-    duration_call_minute=1
-    
-    data = AudioFromBeelineToBxDTO(
-        domain=domain,
-        companyId=companyId,
-        date_from=date_from,
-        date_to=date_to,
-        userId=userId,
-        phone_client=phone_client,
-        duration_call_minute=duration_call_minute
-    )
-    
-    
-    service = AudioFromBeelineToBxCase(dto=data)
-    result = await service.get_and_push_links()
-    
-    return JSONResponse({'result':result})

@@ -5,7 +5,7 @@ from src.api.entities.api_dto import APIMethod
 
 
 class BXActionEndpoint(str, Enum):
-    TIMELINE='timeline/set'
+    TIMELINE = 'timeline/set'
     
     
 class BxActionServiceDTO(BaseModel):

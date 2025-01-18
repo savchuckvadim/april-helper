@@ -1,42 +1,77 @@
-from src.api.clients.bx_action.bx_action_dto import BxActionServiceDTO, BXActionEndpoint
-from src.api.clients.bx_action.bx_action_api import BxActionAPI
-from src.api.entities.api_dto import APIMethod
-from src.modules.audio.entities.time_line_dto import TimeLineDTO
+# bx_service
+from src.modules.audio.client.bx_api import BxAPI, SendToTimelineCallsLinksDTO
+from src.modules.audio.services.beeline_service import BeelineCallsServiceResultDTO
+from src.modules.audio.usecases.audio_from_beeline_to_bx_case import CallComeDataDTO
 
 
 class BxService:
-        
-    async def set_links_in_timeline(self, data=TimeLineDTO):
-        
-        timeline_data=data.model_dump()
-        bx_api = BxActionAPI()
-        set_timeline_data = BxActionServiceDTO(
-            method=APIMethod.POST.value,
-            endpoint=BXActionEndpoint.TIMELINE.value,
-            data=timeline_data
-        )
-        result = await bx_api.service(service=set_timeline_data)
-        print(result)
-        
-        return result
-    
+	def __init__(self, domain, data: BeelineCallsServiceResultDTO, come_data: CallComeDataDTO):
+		self.domain = domain
+		self.calls_data = data
+		self.come_data = come_data
 
-        
-        
-    
-        beeline_result = await self.__set_links_in_timeline() # функция которая берет данные из билайн
-        
-        beeline_data = self.__get_clean_beeline_links_data # функция которая подготавливает данные из билайн для отправки в таймлайн должна вернуть тп test_data
-    
-        test_data = TimeLineDTO(
-            companyId=36582,
-            domain='april-garant.bitrix24.ru',
-            links=[],
-            message='new code'
-            ) 
-        
-        bx_result = await self.__set_links_in_timeline(test_data)
-      
-        result = {bx_result: bx_result, beeline_result:beeline_result}
-        print(result)
-        return result
+	def process(self):
+		data_result = self.prepare_response()
+		bx_client = BxAPI()
+		send_result = bx_client.send_to_bitrix(data=data_result)
+		return send_result
+
+	def prepare_response(self) -> SendToTimelineCallsLinksDTO:
+		"""
+		Подготовка данных для отправки в Bitrix24.
+
+		:param beeline_url: URL для API Beeline
+		:param headers: Заголовки для запросов
+		:param params: Параметры для запросов
+		:param phone_client: Номер телефона клиента
+		:param duration_call: Продолжительность звонка в миллисекундах
+		:param duration_call_minut: Продолжительность звонка в минутах
+		:param companyId: Идентификатор компании
+		:param date_from: Дата начала периода
+		:param date_to: Дата окончания периода
+		:param userId: Внутренний номер пользователя
+		:return: Сформированный ответ для Bitrix24
+
+		Parameters
+		----------
+		list_of_dict_30
+		"""
+		calls_data = self.calls_data
+		c_data = self.come_data
+
+		# Проверяем, есть ли данные
+		if not calls_data.list_of_dict_30 or not calls_data.list_id_call or not calls_data.result_df:
+			# Если данные отсутствуют
+			links = []
+			message = (
+				f"Нет звонков c параметрами: более {c_data.duration_call_minut} мин., "
+				f"на номер {c_data.phone_client}, период с {c_data.date_from} по {c_data.date_to}, "
+				f"внутренний номер {c_data.user_id}"
+			)
+			result = SendToTimelineCallsLinksDTO(
+				domain=self.domain,
+				links=links,
+				companyId=c_data.companyId,
+				message=message
+			)
+			return result
+
+		links = [
+			{
+				"name": f"Дата, время: {row['date']}, продолжительность: {row['duration']}",
+				"value": row['url']
+			}
+			for row in calls_data.result_df  # Итерируемся по списку
+
+		]
+
+		message = f"Звонки на номер {c_data.phone_client} за период с {c_data.date_from} по {c_data.date_to} включительно."
+
+		result = SendToTimelineCallsLinksDTO(
+			domain=self.domain,
+			links=links,
+			companyId=c_data.companyId,
+			message=message
+		)
+		return result
+

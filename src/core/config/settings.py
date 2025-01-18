@@ -13,5 +13,9 @@ class Settings:
     beeline_base_url = os.getenv("URL_BEELINE_API")
     beeline_api_key = os.getenv("API_TOKEN_BEELINE")
 
+    #     # Указываем явно путь к .env
+    #     env_file = ".env"
+    #     env_file_encoding = "utf-8"
+
 
 settings = Settings()

@@ -1,45 +1,46 @@
-from src.modules.audio.entities.time_line_dto import TimeLineDTO
+from src.modules.audio.entities.audio_from_beeline_to_bx_dto import CallComeDataDTO
+from src.modules.audio.services.beeline_service import BeelineCallsService
 from src.modules.audio.services.bx_service import BxService
 
 
-from ..entities.audio_from_beeline_to_bx_dto import AudioFromBeelineToBxDTO
 
-class AudioFromBeelineToBxCase:
-    def __init__(self, dto: AudioFromBeelineToBxDTO):
-        self.domain = dto.domain
-        self.companyId = dto.companyId
-        self.userId = dto.userId    
-        self.date_from = dto.date_from
-        self.date_to = dto.date_to
-        self.phone_client = dto.phone_client
-        self.duration_call_minute = dto.duration_call_minute
-        
 
-    async def __get_beeline_links_data(self):
-        return 'objects from beeline'
-  
-    def __get_clean_beeline_links_data(self):
-        return 'objects from beeline'
-    
-    async def get_and_push_links(self):
-        
-        
-        
-        beeline_result = await self.__get_beeline_links_data() # функция которая берет данные из билайн
-        
-        beeline_data = self.__get_clean_beeline_links_data() # функция которая подготавливает данные из билайн для отправки в таймлайн должна вернуть тп test_data
-    
-        message='Аудиозаписи не найдены' # или найдены
-        
-        test_data = TimeLineDTO(
-            companyId=self.companyId,
-            domain=self.domain,
-            links=[],
-            message=message
-            ) 
-        bx_service = BxService()
-        bx_result = await bx_service.set_links_in_timeline(test_data)
-      
-        result = {'bx_result': bx_result, 'beeline_result':beeline_result}
-        print(result)
+class FromBeeToBx:
+
+    def prepare_response(self, domain,  date_from, date_to, userId, phone_client, duration_call_minut, companyId):
+        """
+        Подготовка данных для отправки в Bitrix24.
+
+        :param beeline_url: URL для API Beeline
+        :param headers: Заголовки для запросов
+        :param params: Параметры для запросов
+        :param phone_client: Номер телефона клиента
+        :param duration_call: Продолжительность звонка в миллисекундах
+        :param duration_call_minut: Продолжительность звонка в минутах
+        :param companyId: Идентификатор компании
+        :param date_from: Дата начала периода
+        :param date_to: Дата окончания периода
+        :param userId: Внутренний номер пользователя
+        :return: Сформированный ответ для Bitrix24
+
+        Parameters
+        ----------
+        list_of_dict_30
+        """
+        come_data = CallComeDataDTO(
+            user_id=userId,
+            date_from=date_from,
+            date_to=date_to,
+            duration_call_minut=duration_call_minut,
+            phone_client=phone_client,
+            companyId=companyId,
+        )
+        beeline_service = BeelineCallsService(come_data)
+        beeline_result = beeline_service.get_calls_data()
+        bx_service = BxService(domain, data=beeline_result, come_data=come_data)
+        result = bx_service.process()
+
         return result
+
+
+

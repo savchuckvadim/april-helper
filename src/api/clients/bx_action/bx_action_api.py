@@ -16,7 +16,7 @@ class BxActionAPI:
 
     async def service(self, service: BxActionServiceDTO) -> APIRequest:
       
-        url = f"{self.base_url}/{service.endpoint}"
+        url = f"{self.base_url}"
         async with httpx.AsyncClient() as client:
             
 
