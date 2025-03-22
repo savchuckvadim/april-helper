@@ -7,8 +7,9 @@ from src.modules.ai.utils.langchain_helpers import extract_result
 
 
 class OpenAIService:
-    def __init__(self):
+    def __init__(self, model_name:str):
         load_dotenv()
+        self.model_name = model_name
         self.api_key = os.getenv("OPENAI_API_KEY")
         if not self.api_key:
             raise ValueError("❌ Missing GIGACHAT_API_KEY")
@@ -17,20 +18,20 @@ class OpenAIService:
         self.embeddings = OpenAIEmbeddings(openai_api_key=self.api_key)
     async def resume(self, query: str):
         try:
-            retriever = LLMBase.get_retriver(self.embeddings)
-            chain = LLMBase.build_resume_chain(llm=self.llm, retriever=retriever)
-
-            result = chain.invoke(
-                {"input": query, "chat_history": []}  # пустая история по умолчанию
-            )
+            prompt = LLMBase.resume_prompt(with_history=False)
+            chain = prompt | self.llm  # Просто prompt + LLM, без retriever
+            result = chain.invoke({
+                "input": query,
+           
+            })
             return extract_result(result)  # уже строка
         except Exception as e:
-            print(f"❌ Ollama recommendation error: {e}")
+            print(f"❌ Open AI recommendation error: {e}")
             raise AppException(status_code=500, detail=str(e))
     async def recomendation(self, query: str):
         try:
             # 🧠 1. Получаем retriever
-            retriever = LLMBase.get_retriver(self.embeddings)
+            retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
             chain = LLMBase.build_chain(
                 llm=self.llm,
                 retriever=retriever,
@@ -44,7 +45,7 @@ class OpenAIService:
             return extract_result(result)
 
         except Exception as e:
-            print(f"❌ Ollama recommendation error: {e}")
+            print(f"❌ Open AI recommendation error: {e}")
             raise AppException(status_code=500, detail=str(e))
 
 

@@ -10,11 +10,11 @@ class LLMUseCase:
     def _get_service(self, model: str):
         match model:
             case "gigachat":
-                return GigaChatService()
+                return GigaChatService(model)
             case "openai":
-                return OpenAIService()
+                return OpenAIService(model)
             case "ollama":
-                return OllamaService()
+                return OllamaService(model)
             case "fake":
                 return FakeService()
             case _:

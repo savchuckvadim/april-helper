@@ -11,7 +11,8 @@ from langchain_huggingface import HuggingFaceEmbeddings
 
 
 class OllamaService:
-    def __init__(self):
+    def __init__(self, model_name:str):
+        self.model_name = model_name
         load_dotenv()
         self.ollama_url = os.getenv("OLLAMA_BASE_URL")
 
@@ -26,17 +27,15 @@ class OllamaService:
 
     async def resume(self, query: str):
         try:
-            retriever = LLMBase.get_retriver(self.embeddings)
-            chain = LLMBase.build_resume_chain(
-                llm=self.llm, retriever=retriever, with_history=True
-            )
+            prompt = LLMBase.resume_prompt(with_history=True)
+            chain = prompt | self.llm  # Просто prompt + LLM, без retriever
+            chat_history =  []
+            result = chain.invoke({
+                "input": query,
+                "chat_history": chat_history
+            })
 
-            chat_history = []
-
-            # 🚀 4. Выполнение запроса
-            result = chain.invoke({"input": query, "chat_history": chat_history})
-
-            # ✅ 5. Возвращаем чистый результат
+        
             return extract_result(result)
 
         except Exception as e:
@@ -46,7 +45,7 @@ class OllamaService:
     async def recomendation(self, query: str):
         try:
             # 🧠 1. Получаем retriever
-            retriever = LLMBase.get_retriver(self.embeddings)
+            retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
 
             # 🔗 2. Собираем цепочку с учётом истории
             chain = LLMBase.build_chain(

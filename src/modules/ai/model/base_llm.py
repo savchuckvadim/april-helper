@@ -1,6 +1,5 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-import os
-import fitz
+from src.modules.ai.services.chroma_service import ChromaService
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain.chains import create_history_aware_retriever
@@ -15,29 +14,10 @@ from src.modules.ai.model.prompts import (
 
 class LLMBase:
     @staticmethod
-    def get_retriver(embeddings):
-        file_path = os.path.abspath("retrive_data/data.pdf")
-        print(f"✅ Файл найден: {file_path}")
+    def get_retriver(embeddings, embedding_id: str):
+      
+        retriever = ChromaService.get_vectorstore(embeddings, embedding_id).as_retriever(search_kwargs={"k": 2})
 
-        # Чтение PDF
-        def extract_text_from_pdf(path):
-            text = ""
-            with fitz.open(path) as doc:
-                for page in doc:
-                    text += page.get_text("text") + "\n"
-            return text
-
-        pdf_text = extract_text_from_pdf(file_path)
-
-        # Разбиваем на части
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000, chunk_overlap=200
-        )
-        splits = text_splitter.create_documents([pdf_text])
-
-        # Индексация
-        vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
-        retriever = vectorstore.as_retriever(search_kwargs={"k": 2})
         return retriever
 
     @staticmethod
@@ -74,7 +54,7 @@ class LLMBase:
                 MessagesPlaceholder("chat_history"),
                 ("user", "{input}"),
             ]
-        )
+        ).partial(context="{context}")
 
     @staticmethod
     def build_chain(llm, retriever, with_history: bool = False):

@@ -8,8 +8,9 @@ from src.modules.ai.utils.langchain_helpers import extract_result
 
 
 class GigaChatService:
-    def __init__(self):
+    def __init__(self, model_name:str):
         load_dotenv()
+        self.model_name = model_name
         self.api_key = os.getenv("GIGACHAT_API_KEY")
         if not self.api_key:
             raise ValueError("❌ Missing GIGACHAT_API_KEY")
@@ -21,36 +22,18 @@ class GigaChatService:
 
     async def resume(self, query: str):
         try:
-            retriever = LLMBase.get_retriver(self.embeddings)
-            chain = LLMBase.build_resume_chain(llm=self.llm, retriever=retriever)
-
-            result = chain.invoke(
-                {"input": query, "chat_history": []}  # пустая история по умолчанию
-            )
+            prompt = LLMBase.resume_prompt(with_history=False)
+            chain = prompt | self.llm  # Просто prompt + LLM, без retriever
+            result = chain.invoke({
+                "input": query,
+           
+            })
             return extract_result(result)  # уже строка
         except Exception as e:
-            print(f"❌ Ollama recommendation error: {e}")
+            print(f"❌ GigaChatService recommendation error: {e}")
             raise AppException(status_code=500, detail=str(e))
 
-    # async def recomendation(self, query: str):
-    #     try:
-
-    #         retriever = LLMBase.get_retriver(self.embeddings)
-    #         # Создание цепочек
-    #         prompt = LLMBase.recomendation_prompt()
-    #         document_chain = create_stuff_documents_chain(self.llm, prompt)
-    #         retrieval_chain = create_retrieval_chain(retriever, document_chain)
-
-    #         # Запуск
-    #         chat_history = []
-    #         result = retrieval_chain.invoke(
-    #             {"input": query, "chat_history": chat_history}
-    #         )
-
-    #         return extract_result(result)
-    #     except Exception as e:
-    #         print(f"❌ GigaChat recommendation error: {e}")
-    #         return JSONResponse({"error": str(e)}, status_code=500)
+    
 
     async def recomendation(self, query: str):
         try:
@@ -72,5 +55,5 @@ class GigaChatService:
             return extract_result(result)
 
         except Exception as e:
-            print(f"❌ Ollama recommendation error: {e}")
+            print(f"❌ GigaChatService recommendation error: {e}")
             raise AppException(status_code=500, detail=str(e))
