@@ -3,7 +3,7 @@ from src.api.http.exceptions import AppException
 from dotenv import load_dotenv
 from langchain_gigachat import GigaChatEmbeddings
 from langchain_gigachat import GigaChat
-from src.modules.ai.llm.base_llm import LLMBase
+from src.modules.ai.model.base_llm import LLMBase
 from src.modules.ai.utils.langchain_helpers import extract_result
 
 

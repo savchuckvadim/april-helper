@@ -2,7 +2,7 @@ import os
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from dotenv import load_dotenv
 from src.api.http.exceptions import AppException
-from src.modules.ai.llm.base_llm import LLMBase
+from src.modules.ai.model.base_llm import LLMBase
 from src.modules.ai.utils.langchain_helpers import extract_result
 
 
