@@ -1,10 +1,9 @@
-# routers
 from fastapi import APIRouter, Query
 from src.modules.audio.usecases.audio_from_beeline_to_bx_case import FromBeeToBx
 from fastapi.responses import JSONResponse
 
 # uvicorn app.main:app --host 0.0.0.0 --port 8000
-router = APIRouter()
+router = APIRouter(prefix="", tags=["Запись звонка в CRM"])
 
 
 @router.post("/process-data/")
