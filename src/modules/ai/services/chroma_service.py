@@ -1,10 +1,7 @@
 import os
-import fitz
 from langchain_community.vectorstores import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.document_loaders import TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from src.modules.ai.utils import FileLoader
+from src.modules.ai.utils.file_loader import FileLoader
 
 class ChromaService:
     @staticmethod

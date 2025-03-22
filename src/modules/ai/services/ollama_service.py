@@ -27,13 +27,21 @@ class OllamaService:
 
     async def resume(self, query: str):
         try:
-            prompt = LLMBase.resume_prompt(with_history=True)
-            chain = prompt | self.llm  # Просто prompt + LLM, без retriever
-            chat_history =  []
-            result = chain.invoke({
-                "input": query,
-                "chat_history": chat_history
-            })
+            # prompt = LLMBase.resume_prompt(with_history=True)
+            # chain = prompt | self.llm  # Просто prompt + LLM, без retriever
+            # chat_history =  []
+            # result = chain.invoke({
+            #     "input": query,
+            #     "chat_history": chat_history
+            # })
+            retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
+
+            chain = LLMBase.build_resume_chain(
+                llm=self.llm, retriever=retriever, with_history=True
+            )
+            chat_history = []
+
+            result = chain.invoke({"input": query, "chat_history": chat_history})
 
         
             return extract_result(result)

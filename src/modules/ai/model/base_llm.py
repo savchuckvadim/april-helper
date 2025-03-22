@@ -1,7 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from src.modules.ai.services.chroma_service import ChromaService
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+
 from langchain.chains import create_history_aware_retriever
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
@@ -30,7 +29,7 @@ class LLMBase:
 
         messages.append(("human", "{input}"))
 
-        return ChatPromptTemplate.from_messages(messages)
+        return ChatPromptTemplate.from_messages(messages).partial(context="{context}")
 
     @staticmethod
     def recomendation_prompt(with_history: bool = False):
@@ -42,6 +41,7 @@ class LLMBase:
             messages.append(MessagesPlaceholder("chat_history"))
 
         messages.append(("human", "{input}"))
+        return ChatPromptTemplate.from_messages(messages).partial(context="{context}")
 
     @staticmethod
     def contextualize_prompt():
@@ -60,7 +60,7 @@ class LLMBase:
     def build_chain(llm, retriever, with_history: bool = False):
         if with_history:
             history_prompt = LLMBase.contextualize_prompt()
-            qa_prompt = LLMBase.recomendation_prompt()
+            qa_prompt = LLMBase.recomendation_prompt(with_history)
 
             history_aware_retriever = create_history_aware_retriever(
                 llm, retriever, history_prompt
@@ -77,4 +77,5 @@ class LLMBase:
     def build_resume_chain(llm, retriever, with_history: bool = False):
         prompt = LLMBase.resume_prompt(with_history)
         document_chain = create_stuff_documents_chain(llm, prompt)
+       
         return create_retrieval_chain(retriever, document_chain)

@@ -18,13 +18,18 @@ class OpenAIService:
         self.embeddings = OpenAIEmbeddings(openai_api_key=self.api_key)
     async def resume(self, query: str):
         try:
-            prompt = LLMBase.resume_prompt(with_history=False)
-            chain = prompt | self.llm  # Просто prompt + LLM, без retriever
+            retriever = LLMBase.build_resume_chain(self.embeddings, self.model_name)
+            chain = LLMBase.build_chain(
+                llm=self.llm,
+                retriever=retriever,
+                with_history=False,
+            )
             result = chain.invoke({
                 "input": query,
-           
             })
-            return extract_result(result)  # уже строка
+
+   
+            return extract_result(result)
         except Exception as e:
             print(f"❌ Open AI recommendation error: {e}")
             raise AppException(status_code=500, detail=str(e))
