@@ -15,12 +15,12 @@ class OllamaService:
         self.model_name = model_name
         load_dotenv()
         self.ollama_url = os.getenv("OLLAMA_BASE_URL")
-
+        print("OllamaService")
         self.llm = OllamaLLM(
             model="mistral",
-            base_url=os.getenv(self.ollama_url, "http://45.12.74.239:11434"),
+            base_url=self.ollama_url or "http://45.12.74.239:11434",
         )
-
+        print("OllamaService")
         self.embeddings = HuggingFaceEmbeddings(
             model_name="sentence-transformers/all-mpnet-base-v2"
         )
