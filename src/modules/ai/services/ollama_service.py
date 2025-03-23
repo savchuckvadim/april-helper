@@ -34,9 +34,9 @@ class OllamaService:
             #     "input": query,
             #     "chat_history": chat_history
             # })
-            retriever = await LLMBase.get_retriver(self.embeddings, self.model_name)
+            retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
 
-            chain = await LLMBase.build_resume_chain(
+            chain = LLMBase.build_resume_chain(
                 llm=self.llm, retriever=retriever, with_history=True
             )
             chat_history = []
