@@ -20,7 +20,7 @@ class OllamaService:
             model="mistral",
             base_url=self.ollama_url or "http://45.12.74.239:11434",
         )
-        print("OllamaService")
+        print(self.ollama_url)
         self.embeddings = HuggingFaceEmbeddings(
             model_name="sentence-transformers/all-mpnet-base-v2"
         )
@@ -46,7 +46,10 @@ class OllamaService:
             chat_history = []
             print("🚀 4. Запрос")
 
-            result = chain.invoke(
+            # result = chain.invoke(
+            #     {"input": query, "chat_history": chat_history, "context": ""}
+            # )
+            result = await chain.ainvoke(
                 {"input": query, "chat_history": chat_history, "context": ""}
             )
             print(" Ответ получен")
@@ -71,7 +74,10 @@ class OllamaService:
             chat_history = []
 
             print("🚀 4. Запрос")
-            result = chain.invoke(
+            # result = chain.invoke(
+            #     {"input": query, "chat_history": chat_history, "context": ""}
+            # )
+            result = await chain.ainvoke(
                 {"input": query, "chat_history": chat_history, "context": ""}
             )
             print(" Ответ получен")
