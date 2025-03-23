@@ -29,7 +29,7 @@ class GigaChatService:
            
             # })
             # return extract_result(result)  # уже строка
-            retriever = LLMBase.get_retriver(self.embeddings)
+            retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
             chain = LLMBase.build_resume_chain(
                 llm=self.llm,
                 retriever=retriever,
@@ -54,7 +54,7 @@ class GigaChatService:
     async def recomendation(self, query: str):
         try:
             # 🧠 1. Получаем retriever
-            retriever = LLMBase.get_retriver(self.embeddings)
+            retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
             chain = LLMBase.build_chain(
                 llm=self.llm,
                 retriever=retriever,
