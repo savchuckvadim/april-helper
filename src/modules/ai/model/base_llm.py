@@ -14,8 +14,10 @@ from src.modules.ai.model.prompts import (
 class LLMBase:
     @staticmethod
     def get_retriver(embeddings, embedding_id: str):
-      
-        retriever = ChromaService.get_vectorstore(embeddings, embedding_id).as_retriever(search_kwargs={"k": 2})
+
+        retriever = ChromaService.get_vectorstore(
+            embeddings, embedding_id
+        ).as_retriever(search_kwargs={"k": 2})
 
         return retriever
 
@@ -28,8 +30,9 @@ class LLMBase:
             messages.append(MessagesPlaceholder("chat_history"))
 
         messages.append(("human", "{input}"))
-
-        return ChatPromptTemplate.from_messages(messages).partial(context="{context}")
+        prompt = ChatPromptTemplate.from_messages(messages)
+        # .partial(context="{context}")
+        return prompt
 
     @staticmethod
     def recomendation_prompt(with_history: bool = False):
@@ -41,7 +44,8 @@ class LLMBase:
             messages.append(MessagesPlaceholder("chat_history"))
 
         messages.append(("human", "{input}"))
-        return ChatPromptTemplate.from_messages(messages).partial(context="{context}")
+        return ChatPromptTemplate.from_messages(messages)
+    # .partial(context="{context}")
 
     @staticmethod
     def contextualize_prompt():
@@ -54,7 +58,8 @@ class LLMBase:
                 MessagesPlaceholder("chat_history"),
                 ("user", "{input}"),
             ]
-        ).partial(context="{context}")
+        )
+    # .partial(context="{context}")
 
     @staticmethod
     def build_chain(llm, retriever, with_history: bool = False):
@@ -76,6 +81,9 @@ class LLMBase:
     @staticmethod
     def build_resume_chain(llm, retriever, with_history: bool = False):
         prompt = LLMBase.resume_prompt(with_history)
+
+        print(prompt.input_variables)
+
         document_chain = create_stuff_documents_chain(llm, prompt)
-       
+
         return create_retrieval_chain(retriever, document_chain)
