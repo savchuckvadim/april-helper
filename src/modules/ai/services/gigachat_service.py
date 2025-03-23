@@ -39,6 +39,7 @@ class GigaChatService:
             # chat_history = []
             result = chain.invoke({
                 "input": query,
+                "context": ""
                 # "chat_history": chat_history
             })
 
@@ -63,6 +64,7 @@ class GigaChatService:
             # chat_history = []
             result = chain.invoke({
                 "input": query,
+                "context": ""
                 # "chat_history": chat_history
             })
 

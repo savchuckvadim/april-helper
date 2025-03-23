@@ -26,6 +26,7 @@ class OpenAIService:
             )
             result = chain.invoke({
                 "input": query,
+                "context": ""
             })
 
    
@@ -44,6 +45,7 @@ class OpenAIService:
             )
             result = chain.invoke({
                 "input": query,
+                "context": ""
             })
 
    

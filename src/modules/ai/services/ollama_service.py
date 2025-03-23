@@ -11,7 +11,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 
 
 class OllamaService:
-    def __init__(self, model_name:str):
+    def __init__(self, model_name: str):
         self.model_name = model_name
         load_dotenv()
         self.ollama_url = os.getenv("OLLAMA_BASE_URL")
@@ -41,9 +41,10 @@ class OllamaService:
             )
             chat_history = []
 
-            result = chain.invoke({"input": query, "chat_history": chat_history})
+            result = chain.invoke(
+                {"input": query, "chat_history": chat_history, "context": ""}
+            )
 
-        
             return extract_result(result)
 
         except Exception as e:
@@ -64,7 +65,9 @@ class OllamaService:
             chat_history = []
 
             # 🚀 4. Запрос
-            result = chain.invoke({"input": query, "chat_history": chat_history})
+            result = chain.invoke(
+                {"input": query, "chat_history": chat_history, "context": ""}
+            )
 
             # ✅ 5. Возвращаем результат
             return extract_result(result)
