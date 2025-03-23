@@ -35,6 +35,7 @@ app.include_router(router=router_api_v1, prefix="/api/v1")
 origins = [
     "http://localhost:5000",  # Замените на ваш фронтенд-домен
     "https://april-server.ru",  # Другие разрешенные домены
+    "https://front.april-app.ru",
 ]
 
 # Настройка CORS
@@ -49,10 +50,7 @@ app.add_middleware(
 
 @app.exception_handler(AppException)
 async def app_exception_handler(request: Request, exc: AppException):
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"error": exc.detail}
-    )
+    return JSONResponse(status_code=exc.status_code, content={"error": exc.detail})
 
 
 if __name__ == "__main__":

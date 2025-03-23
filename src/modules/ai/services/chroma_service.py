@@ -2,6 +2,8 @@ import os
 from langchain_community.vectorstores import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from src.modules.ai.utils.file_loader import FileLoader
+from langchain.schema import Document
+
 
 class ChromaService:
     @staticmethod
@@ -20,6 +22,8 @@ class ChromaService:
         all_text = ""
         folder = os.path.abspath("retrive_data")
 
+
+        documents = []  
         # text = extract_text_from_pdf(file_path)
         for filename in os.listdir(folder):
             path = os.path.join(folder, filename)
@@ -27,13 +31,16 @@ class ChromaService:
                 content = FileLoader.extract_text(path)
                 all_text += content + "\n"
                 print(f"✅ Загрузили: {filename}")
+                documents.append(Document(page_content=content, metadata={"source": filename}))
+
             except Exception as e:
                 print(f"⚠️ Пропущен {filename}: {e}")
 
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        splits = text_splitter.split_documents([all_text])
+        splits = text_splitter.split_documents(documents)
+
     
-        vectorstore = Chroma.from_documents(splits, embedding=embeddings, persist_directory=DB_PATH)
+        vectorstore = Chroma.from_documents(splits, embedding=embeddings, persist_directory=db_path)
         vectorstore.persist()  # Сохранение базы
     
         return vectorstore
