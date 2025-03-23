@@ -1,5 +1,6 @@
 import os
-from langchain_community.vectorstores import Chroma
+# from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from src.modules.ai.utils.file_loader import FileLoader
 from langchain.schema import Document
