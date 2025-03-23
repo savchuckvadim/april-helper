@@ -34,14 +34,14 @@ class OllamaService:
             #     "input": query,
             #     "chat_history": chat_history
             # })
-            retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
+            retriever = await LLMBase.get_retriver(self.embeddings, self.model_name)
 
-            chain = LLMBase.build_resume_chain(
+            chain = await LLMBase.build_resume_chain(
                 llm=self.llm, retriever=retriever, with_history=True
             )
             chat_history = []
 
-            result = chain.invoke(
+            result = await chain.invoke(
                 {"input": query, "chat_history": chat_history, "context": ""}
             )
 
@@ -54,10 +54,10 @@ class OllamaService:
     async def recomendation(self, query: str):
         try:
             # 🧠 1. Получаем retriever
-            retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
+            retriever = await LLMBase.get_retriver(self.embeddings, self.model_name)
 
             # 🔗 2. Собираем цепочку с учётом истории
-            chain = LLMBase.build_chain(
+            chain = await LLMBase.build_chain(
                 llm=self.llm, retriever=retriever, with_history=True
             )
 
@@ -65,7 +65,7 @@ class OllamaService:
             chat_history = []
 
             # 🚀 4. Запрос
-            result = chain.invoke(
+            result = await chain.invoke(
                 {"input": query, "chat_history": chat_history, "context": ""}
             )
 
