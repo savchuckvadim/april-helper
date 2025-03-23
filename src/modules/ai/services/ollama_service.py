@@ -46,14 +46,14 @@ class OllamaService:
             chat_history = []
             print("🚀 4. Запрос")
 
-            result = await chain.invoke(
+            result = chain.invoke(
                 {"input": query, "chat_history": chat_history, "context": ""}
             )
             print(" Ответ получен")
             return extract_result(result)
 
         except Exception as e:
-            print(f"❌ Ollama recommendation error: {e}")
+            print(f"❌ Ollama resume error: {e}")
             raise AppException(status_code=500, detail=str(e))
 
     async def recomendation(self, query: str):
@@ -71,7 +71,7 @@ class OllamaService:
             chat_history = []
 
             print("🚀 4. Запрос")
-            result = await chain.invoke(
+            result = chain.invoke(
                 {"input": query, "chat_history": chat_history, "context": ""}
             )
             print(" Ответ получен")
