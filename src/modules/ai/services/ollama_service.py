@@ -27,6 +27,8 @@ class OllamaService:
 
     async def resume(self, query: str):
         try:
+            print("resume")
+
             # prompt = LLMBase.resume_prompt(with_history=True)
             # chain = prompt | self.llm  # Просто prompt + LLM, без retriever
             # chat_history =  []
@@ -35,16 +37,19 @@ class OllamaService:
             #     "chat_history": chat_history
             # })
             retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
+            print("retriever")
+            print("🔗 2. Собираем цепочку с учётом истории")
 
             chain = LLMBase.build_resume_chain(
                 llm=self.llm, retriever=retriever, with_history=True
             )
             chat_history = []
+            print("🚀 4. Запрос")
 
             result = await chain.invoke(
                 {"input": query, "chat_history": chat_history, "context": ""}
             )
-
+            print(" Ответ получен")
             return extract_result(result)
 
         except Exception as e:
@@ -54,21 +59,22 @@ class OllamaService:
     async def recomendation(self, query: str):
         try:
             # 🧠 1. Получаем retriever
-            retriever = await LLMBase.get_retriver(self.embeddings, self.model_name)
+            retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
+            print("retriever")
+            print("🔗 2. Собираем цепочку с учётом истории")
 
-            # 🔗 2. Собираем цепочку с учётом истории
-            chain = await LLMBase.build_chain(
+            chain = LLMBase.build_chain(
                 llm=self.llm, retriever=retriever, with_history=True
             )
 
             # 💬 3. История чата (пока пустая, можно позже подключить хранение)
             chat_history = []
 
-            # 🚀 4. Запрос
+            print("🚀 4. Запрос")
             result = await chain.invoke(
                 {"input": query, "chat_history": chat_history, "context": ""}
             )
-
+            print(" Ответ получен")
             # ✅ 5. Возвращаем результат
             return extract_result(result)
 
