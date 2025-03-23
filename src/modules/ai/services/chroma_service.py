@@ -42,6 +42,6 @@ class ChromaService:
 
     
         vectorstore = Chroma.from_documents(splits, embedding=embeddings, persist_directory=db_path)
-        vectorstore.persist()  # Сохранение базы
+        # vectorstore.persist()  # Сохранение базы
     
         return vectorstore
