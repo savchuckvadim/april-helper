@@ -130,7 +130,7 @@ class OpenAIService:
 
     #         # 🔹 Разделяем текст на части
     #         text_splitter = RecursiveCharacterTextSplitter(
-    #             chunk_size=1000, chunk_overlap=200
+    #             chunk_size=250, chunk_overlap=200
     #         )
     #         splits = text_splitter.create_documents([pdf_text])
 

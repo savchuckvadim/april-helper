@@ -1,6 +1,12 @@
 
 *.sqlite3
 
+# Кэш моделей (Hugging Face и т.п.) — symlink’и на Windows ломают git add
+models/
+
+# Локальные векторные индексы Chroma
+chroma_db/
+
 
 # Исключение виртуальных окружений
 .venv

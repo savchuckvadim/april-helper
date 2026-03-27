@@ -15,9 +15,10 @@ class OllamaService:
         self.model_name = model_name
         load_dotenv()
         self.ollama_url = os.getenv("OLLAMA_BASE_URL")
+        self.chat_model = os.getenv("OLLAMA_CHAT_MODEL", "mistral")
         print("OllamaService")
         self.llm = OllamaLLM(
-            model="mistral",
+            model=self.chat_model,
             base_url=self.ollama_url or "http://45.12.74.239:11434",
         )
         print(self.ollama_url)

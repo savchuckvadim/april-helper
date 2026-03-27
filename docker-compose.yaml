@@ -1,15 +1,66 @@
-version: "3.3"  # Убедитесь, что версия поддерживается вашей версией Docker Compose
+# Compose Spec: docker compose v2+
+# Ollama сам поднимает API (отдельный `ollama start` не нужен). Модели в образ не входят —
+# сервис ollama-pull один раз подтягивает модель в volume при каждом `docker compose up`
+# (если модель уже есть — pull почти мгновенный).
+# Модель: переменная OLLAMA_CHAT_MODEL в .env или ниже в helper (по умолчанию mistral).
 
 services:
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 30s
+      retries: 12
+      start_period: 15s
+    # На Linux-сервере с NVIDIA + nvidia-container-toolkit раскомментируй:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # Скачивает модель в volume ollama_data (через API сервера ollama)
+  ollama-pull:
+    image: ollama/ollama:latest
+    container_name: ollama-pull
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_CHAT_MODEL: ${OLLAMA_CHAT_MODEL:-mistral}
+    entrypoint: ["/bin/sh", "-c", "exec ollama pull $$OLLAMA_CHAT_MODEL"]
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: "no"
+
   helper:
-      container_name: "helper"
-      image: helper
-      build:
-        context: .
-        dockerfile: Dockerfile
-      volumes:
-      - .:/var/www/html  
-      ports:
-        - "8089:8000"
-      restart: unless-stopped
+    container_name: helper
+    image: helper
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      ollama-pull:
+        condition: service_completed_successfully
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_CHAT_MODEL: ${OLLAMA_CHAT_MODEL:-mistral}
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - .:/var/www/html
+      - ./models:/root/.cache/huggingface
+    ports:
+      - "8089:8000"
+    restart: unless-stopped
+
+volumes:
+  ollama_data:

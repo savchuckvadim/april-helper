@@ -1,0 +1,16 @@
+version: "3.3" 
+
+services:
+
+  helper:
+      container_name: "helper"
+      image: helper
+      build:
+        context: .
+        dockerfile: Dockerfile
+      volumes:
+      - .:/var/www/html  
+      - ./models:/root/.cache/huggingface
+      ports:
+        - "8089:8000"
+      restart: unless-stopped

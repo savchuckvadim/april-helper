@@ -1,0 +1,13 @@
+# Кэш моделей монтируется в runtime (./models в compose), в образ не нужен.
+# Иначе build context огромный и на Windows часто падает: unknown file mode (HF hub layout).
+models/
+
+chroma_db/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.git/
+.env
+.venv/
+venv/
+*.log
