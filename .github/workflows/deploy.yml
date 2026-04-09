@@ -1,0 +1,46 @@
+name: Deploy Helper on push to main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: CI started
+        run: echo "Deploy workflow started"
+
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+          timeout: 30m
+          command_timeout: 90m
+          script: |
+            set -e
+            echo "Connecting to helper server..."
+            cd "/var/www/html/helper.april-app#"
+
+            echo "Updating repository..."
+            git pull origin main
+
+            echo "Checking Docker Compose..."
+            docker compose version
+
+            echo "Rebuilding helper with BuildKit cache..."
+            export DOCKER_BUILDKIT=1
+            export BUILDKIT_INLINE_CACHE=1
+
+            # Rebuild and recreate only helper to avoid touching long-lived services.
+            docker compose build helper
+            docker compose up -d --no-deps helper
+
+            echo "Deployment status:"
+            docker compose ps
+            docker logs helper --tail 100 || true

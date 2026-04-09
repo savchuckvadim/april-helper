@@ -8,11 +8,11 @@ class TranscriptionRequestDto(BaseModel):
     userName: str
     appName: str
     activityId: str
-    fileId: str
+    fileId: str | int
     duration: str
     department: str
     entityType: str
-    entityId: str
+    entityId: str | int
     entityName: str
     domain: str
 

@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from langchain_gigachat import GigaChatEmbeddings
 from langchain_gigachat import GigaChat
 from src.modules.ai.model.base_llm import LLMBase
+from src.modules.ai.pipelines.long_dialogue_pipeline import LongDialoguePipeline
 from src.modules.ai.utils.langchain_helpers import extract_result
 
 
@@ -30,20 +31,21 @@ class GigaChatService:
             # })
             # return extract_result(result)  # уже строка
             retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
+            if LongDialoguePipeline.needs_chunked_processing(query):
+                pipeline = LongDialoguePipeline(llm=self.llm, retriever=retriever)
+                return pipeline.run_resume(query)
+
             chain = LLMBase.build_resume_chain(
                 llm=self.llm,
                 retriever=retriever,
                 with_history=False
             )
 
-            # chat_history = []
             result = chain.invoke({
                 "input": query,
                 "context": ""
-                # "chat_history": chat_history
             })
 
-   
             return extract_result(result)
         except Exception as e:
             print(f"❌ GigaChatService recommendation error: {e}")
@@ -55,20 +57,21 @@ class GigaChatService:
         try:
             # 🧠 1. Получаем retriever
             retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
+            if LongDialoguePipeline.needs_chunked_processing(query):
+                pipeline = LongDialoguePipeline(llm=self.llm, retriever=retriever)
+                return pipeline.run_recommendation(query)
+
             chain = LLMBase.build_chain(
                 llm=self.llm,
                 retriever=retriever,
                 with_history=False
             )
 
-            # chat_history = []
             result = chain.invoke({
                 "input": query,
                 "context": ""
-                # "chat_history": chat_history
             })
 
-   
             return extract_result(result)
 
         except Exception as e:
