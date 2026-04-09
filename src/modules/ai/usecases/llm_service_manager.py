@@ -20,8 +20,8 @@ class LLMUseCase:
             case _:
                 raise ValueError(f"❌ Unknown model: {model}")
 
-    async def resume(self, query: str):
-        return await self.service.resume(query)
+    async def resume(self, query: str, domain: str | None = None, use_portal_settings: bool = False):
+        return await self.service.resume(query, domain=domain, use_portal_settings=use_portal_settings)
 
-    async def recomendation(self, query: str):
-        return await self.service.recomendation(query)
+    async def recomendation(self, query: str, domain: str | None = None, use_portal_settings: bool = False):
+        return await self.service.recomendation(query, domain=domain, use_portal_settings=use_portal_settings)

@@ -3,7 +3,7 @@ from src.api.http.exceptions import AppException
 
 class FakeService:
 
-    async def resume(self, query: str):
+    async def resume(self, query: str, domain: str | None = None, use_portal_settings: bool = False):
         try:
 
             result = (
@@ -19,7 +19,7 @@ class FakeService:
             print(f"❌ FAKE recommendation error: {e}")
             raise AppException(status_code=500, detail=str(e))
 
-    async def recomendation(self, query: str):
+    async def recomendation(self, query: str, domain: str | None = None, use_portal_settings: bool = False):
         try:
             result = (
                 "В этом разговоре менеджер сразу же столкнулся с возражением со стороны клиента. "

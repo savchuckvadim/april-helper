@@ -17,9 +17,16 @@ class TranscriptionRequestDto(BaseModel):
     domain: str
 
 
+class TranscriptionChunkDto(BaseModel):
+    start: float
+    end: float
+    text: str
+
+
 class TranscriptionResponseDto(BaseModel):
     taskId: str
     status: str
     text: str | None = None
+    chunks: list[TranscriptionChunkDto] | None = None
     error: str | None = None
     transcriptionId: int | None = None

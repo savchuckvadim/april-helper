@@ -13,17 +13,31 @@ from src.modules.ai.model.prompts import (
 
 class LLMBase:
     @staticmethod
-    def get_retriver(embeddings, embedding_id: str):
+    def get_retriver(
+        embeddings,
+        embedding_id: str,
+        retrive_root=None,
+        retrive_paths: list[str] | None = None,
+        domain: str | None = None,
+        kind: str | None = None,
+        content_hash: str | None = None,
+    ):
 
         retriever = ChromaService.get_vectorstore(
-            embeddings, embedding_id
+            embeddings,
+            embedding_id,
+            retrive_root=retrive_root,
+            retrive_paths=retrive_paths,
+            domain=domain,
+            kind=kind,
+            content_hash=content_hash,
         ).as_retriever(search_kwargs={"k": 2})
 
         return retriever
 
     @staticmethod
-    def resume_prompt(with_history: bool = False):
-        system_text = RESUME_SYSTEM_PROMPT
+    def resume_prompt(with_history: bool = False, system_prompt_override: str | None = None):
+        system_text = system_prompt_override or RESUME_SYSTEM_PROMPT
         messages = [("system", system_text)]
 
         if with_history:
@@ -35,8 +49,8 @@ class LLMBase:
         return prompt
 
     @staticmethod
-    def recomendation_prompt(with_history: bool = False):
-        system_text = RECOMMENDATION_SYSTEM_PROMPT
+    def recomendation_prompt(with_history: bool = False, system_prompt_override: str | None = None):
+        system_text = system_prompt_override or RECOMMENDATION_SYSTEM_PROMPT
 
         messages = [("system", system_text)]
 
@@ -62,10 +76,10 @@ class LLMBase:
     # .partial(context="{context}")
 
     @staticmethod
-    def build_chain(llm, retriever, with_history: bool = False):
+    def build_chain(llm, retriever, with_history: bool = False, system_prompt_override: str | None = None):
         if with_history:
             history_prompt = LLMBase.contextualize_prompt()
-            qa_prompt = LLMBase.recomendation_prompt(with_history)
+            qa_prompt = LLMBase.recomendation_prompt(with_history, system_prompt_override=system_prompt_override)
 
             history_aware_retriever = create_history_aware_retriever(
                 llm, retriever, history_prompt
@@ -74,13 +88,13 @@ class LLMBase:
             return create_retrieval_chain(history_aware_retriever, document_chain)
 
         # Без учёта истории
-        qa_prompt = LLMBase.recomendation_prompt()
+        qa_prompt = LLMBase.recomendation_prompt(system_prompt_override=system_prompt_override)
         document_chain = create_stuff_documents_chain(llm, qa_prompt)
         return create_retrieval_chain(retriever, document_chain)
 
     @staticmethod
-    def build_resume_chain(llm, retriever, with_history: bool = False):
-        prompt = LLMBase.resume_prompt(with_history)
+    def build_resume_chain(llm, retriever, with_history: bool = False, system_prompt_override: str | None = None):
+        prompt = LLMBase.resume_prompt(with_history, system_prompt_override=system_prompt_override)
 
         print(prompt.input_variables)
 

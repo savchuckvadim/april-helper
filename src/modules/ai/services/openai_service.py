@@ -16,9 +16,9 @@ class OpenAIService:
         self.llm = ChatOpenAI(model="gpt-3.5-turbo", openai_api_key=self.api_key)
 
         self.embeddings = OpenAIEmbeddings(openai_api_key=self.api_key)
-    async def resume(self, query: str):
+    async def resume(self, query: str, domain: str | None = None, use_portal_settings: bool = False):
         try:
-            retriever = LLMBase.build_resume_chain(self.embeddings, self.model_name)
+            retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
             chain = LLMBase.build_chain(
                 llm=self.llm,
                 retriever=retriever,
@@ -34,7 +34,7 @@ class OpenAIService:
         except Exception as e:
             print(f"❌ Open AI recommendation error: {e}")
             raise AppException(status_code=500, detail=str(e))
-    async def recomendation(self, query: str):
+    async def recomendation(self, query: str, domain: str | None = None, use_portal_settings: bool = False):
         try:
             # 🧠 1. Получаем retriever
             retriever = LLMBase.get_retriver(self.embeddings, self.model_name)

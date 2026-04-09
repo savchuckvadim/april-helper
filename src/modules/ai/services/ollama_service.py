@@ -5,6 +5,7 @@ from src.api.http.exceptions import AppException
 
 from src.modules.ai.model.base_llm import LLMBase
 from src.modules.ai.utils.langchain_helpers import extract_result
+from src.modules.ai_admin.services.runtime_settings_service import RuntimeSettingsService
 
 from langchain_ollama import OllamaLLM
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -25,8 +26,9 @@ class OllamaService:
         self.embeddings = HuggingFaceEmbeddings(
             model_name="sentence-transformers/all-mpnet-base-v2"
         )
+        self.runtime_settings = RuntimeSettingsService()
 
-    async def resume(self, query: str):
+    async def resume(self, query: str, domain: str | None = None, use_portal_settings: bool = False):
         try:
             print("resume")
 
@@ -37,12 +39,23 @@ class OllamaService:
             #     "input": query,
             #     "chat_history": chat_history
             # })
-            retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
+            runtime = self.runtime_settings.resolve(domain=domain, kind="resume", use_portal_settings=use_portal_settings)
+            if runtime.source != "portal":
+                print(f"ℹ️ resume settings source: {runtime.source}; issues={len(runtime.issues)}")
+            retriever = LLMBase.get_retriver(
+                self.embeddings,
+                self.model_name,
+                retrive_root=runtime.retrive_root,
+                retrive_paths=runtime.retrive_paths,
+                domain=domain if runtime.source == "portal" else None,
+                kind="resume" if runtime.source == "portal" else None,
+                content_hash=runtime.content_hash,
+            )
             print("retriever")
             print("🔗 2. Собираем цепочку с учётом истории")
 
             chain = LLMBase.build_resume_chain(
-                llm=self.llm, retriever=retriever, with_history=True
+                llm=self.llm, retriever=retriever, with_history=True, system_prompt_override=runtime.prompt
             )
             chat_history = []
             print("🚀 4. Запрос")
@@ -60,15 +73,28 @@ class OllamaService:
             print(f"❌ Ollama resume error: {e}")
             raise AppException(status_code=500, detail=str(e))
 
-    async def recomendation(self, query: str):
+    async def recomendation(self, query: str, domain: str | None = None, use_portal_settings: bool = False):
         try:
             # 🧠 1. Получаем retriever
-            retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
+            runtime = self.runtime_settings.resolve(
+                domain=domain, kind="recomendation", use_portal_settings=use_portal_settings
+            )
+            if runtime.source != "portal":
+                print(f"ℹ️ recommendation settings source: {runtime.source}; issues={len(runtime.issues)}")
+            retriever = LLMBase.get_retriver(
+                self.embeddings,
+                self.model_name,
+                retrive_root=runtime.retrive_root,
+                retrive_paths=runtime.retrive_paths,
+                domain=domain if runtime.source == "portal" else None,
+                kind="recomendation" if runtime.source == "portal" else None,
+                content_hash=runtime.content_hash,
+            )
             print("retriever")
             print("🔗 2. Собираем цепочку с учётом истории")
 
             chain = LLMBase.build_chain(
-                llm=self.llm, retriever=retriever, with_history=True
+                llm=self.llm, retriever=retriever, with_history=True, system_prompt_override=runtime.prompt
             )
 
             # 💬 3. История чата (пока пустая, можно позже подключить хранение)

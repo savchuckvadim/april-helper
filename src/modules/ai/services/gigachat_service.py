@@ -6,6 +6,7 @@ from langchain_gigachat import GigaChat
 from src.modules.ai.model.base_llm import LLMBase
 from src.modules.ai.pipelines.long_dialogue_pipeline import LongDialoguePipeline
 from src.modules.ai.utils.langchain_helpers import extract_result
+from src.modules.ai_admin.services.runtime_settings_service import RuntimeSettingsService
 
 
 class GigaChatService:
@@ -20,8 +21,9 @@ class GigaChatService:
         self.embeddings = GigaChatEmbeddings(
             credentials=self.api_key, verify_ssl_certs=False
         )
+        self.runtime_settings = RuntimeSettingsService()
 
-    async def resume(self, query: str):
+    async def resume(self, query: str, domain: str | None = None, use_portal_settings: bool = False):
         try:
             # prompt = LLMBase.resume_prompt(with_history=False)
             # chain = prompt | self.llm  # Просто prompt + LLM, без retriever
@@ -30,7 +32,18 @@ class GigaChatService:
            
             # })
             # return extract_result(result)  # уже строка
-            retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
+            runtime = self.runtime_settings.resolve(domain=domain, kind="resume", use_portal_settings=use_portal_settings)
+            if runtime.source != "portal":
+                print(f"ℹ️ resume settings source: {runtime.source}; issues={len(runtime.issues)}")
+            retriever = LLMBase.get_retriver(
+                self.embeddings,
+                self.model_name,
+                retrive_root=runtime.retrive_root,
+                retrive_paths=runtime.retrive_paths,
+                domain=domain if runtime.source == "portal" else None,
+                kind="resume" if runtime.source == "portal" else None,
+                content_hash=runtime.content_hash,
+            )
             if LongDialoguePipeline.needs_chunked_processing(query):
                 pipeline = LongDialoguePipeline(llm=self.llm, retriever=retriever)
                 return pipeline.run_resume(query)
@@ -38,7 +51,8 @@ class GigaChatService:
             chain = LLMBase.build_resume_chain(
                 llm=self.llm,
                 retriever=retriever,
-                with_history=False
+                with_history=False,
+                system_prompt_override=runtime.prompt,
             )
 
             result = chain.invoke({
@@ -53,10 +67,23 @@ class GigaChatService:
 
     
 
-    async def recomendation(self, query: str):
+    async def recomendation(self, query: str, domain: str | None = None, use_portal_settings: bool = False):
         try:
             # 🧠 1. Получаем retriever
-            retriever = LLMBase.get_retriver(self.embeddings, self.model_name)
+            runtime = self.runtime_settings.resolve(
+                domain=domain, kind="recomendation", use_portal_settings=use_portal_settings
+            )
+            if runtime.source != "portal":
+                print(f"ℹ️ recommendation settings source: {runtime.source}; issues={len(runtime.issues)}")
+            retriever = LLMBase.get_retriver(
+                self.embeddings,
+                self.model_name,
+                retrive_root=runtime.retrive_root,
+                retrive_paths=runtime.retrive_paths,
+                domain=domain if runtime.source == "portal" else None,
+                kind="recomendation" if runtime.source == "portal" else None,
+                content_hash=runtime.content_hash,
+            )
             if LongDialoguePipeline.needs_chunked_processing(query):
                 pipeline = LongDialoguePipeline(llm=self.llm, retriever=retriever)
                 return pipeline.run_recommendation(query)
@@ -64,7 +91,8 @@ class GigaChatService:
             chain = LLMBase.build_chain(
                 llm=self.llm,
                 retriever=retriever,
-                with_history=False
+                with_history=False,
+                system_prompt_override=runtime.prompt,
             )
 
             result = chain.invoke({
