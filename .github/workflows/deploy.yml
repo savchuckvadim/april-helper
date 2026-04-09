@@ -25,7 +25,7 @@ jobs:
           script: |
             set -e
             echo "Connecting to helper server..."
-            cd "/var/www/html/helper.april-app#"
+            cd "/var/www/html/helper.april-app"
 
             echo "Updating repository..."
             git pull origin main
